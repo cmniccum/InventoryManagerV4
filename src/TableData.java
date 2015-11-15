@@ -30,7 +30,7 @@ public class TableData{
 	private int getcurrentstock;	
 	private int getaddedstock;		
 	private long upcsell;			
-	private int sold;				
+	private long sold;				
 	private int cstock;				
 	private String table_click;		
 		
@@ -66,7 +66,7 @@ public class TableData{
 
 		ResultSet rs1 = stmt1.executeQuery();
 		
-		for(int x = 1;rs1.next();x++){
+		while(rs1.next()){
 			Vector<String> vec2 = new Vector<String>();
 
 			for (int i = 1; i < 8; i++){
@@ -239,51 +239,52 @@ public class TableData{
 	//sellStock removes from the current stock of a product
 	//from user input
 	//*****************************************************
-	public void sellStock(String barCodeSell, String quantity){
+	public DefaultTableModel sellStock(String barCodeSell, String quantity){
 		
 		try {
 				 
 			upcsell = Long.parseLong(barCodeSell);
-				 
+			 
 			PreparedStatement stmt1 = con1.prepareStatement("Set @row = 0; ");
 			stmt1.executeQuery();
-					
+			
 			PreparedStatement stmt2 = con1.prepareStatement("SELECT Row FROM (SELECT @row := " +
 					"@row + 1 AS Row, ProductBarCode AS ProductBarCode " + 
 					"FROM supplies Order by ProductName) " + 
 					"As indexing  WHERE ProductBarCode ='"+ upcsell +"'; ");
+			 
 			ResultSet rs = stmt2.executeQuery();
-					
+			
 			rs.next();
 			int x = rs.getInt(1);
 			x -= 1;
-				 
+			 
 			String mod1 = (String) model.getValueAt(x, 6);
-			int sold = Integer.parseInt(mod1);
-					
+			sold = Long.parseLong(mod1);
+			 	
 			int quant = Integer.parseInt(quantity);
-					
+			 
 			String mod2 = (String) model.getValueAt(x, 5);
-			int cstock = Integer.parseInt(mod2);
-					
+			cstock = Integer.parseInt(mod2);
+			 
 			if ((cstock - quant) >= 0){
 				cstock = cstock - quant;
 				sold = sold + quant;
 			}
-					
+			
 		    PreparedStatement stmt = con1.prepareStatement("UPDATE supplies SET AmountOnHand='" + 
 					cstock + "', AmountSold='" + sold + 
 					"' WHERE ProductBarCode='" + upcsell + "';");
 		    stmt.executeUpdate();
-		            
+		   
 		    model.setValueAt(cstock, x, 5);
 			model.setValueAt(sold, x, 6);
-				 
+			 
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	      	
 		}
-		
+		return model;
 	}
 	
 
