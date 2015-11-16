@@ -3,6 +3,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Vector;
+
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
@@ -30,9 +31,10 @@ public class TableData{
 	private int getaddedstock;		
 	private long upcsell;			
 	private Long sold;				
-	private int cstock;				
+	private long cstock;				
 	private String table_click;
-		
+	
+	
 	private DefaultTableModel model =  new DefaultTableModel(getTableData(), getHeader());
 	
 	//Constructor
@@ -94,17 +96,43 @@ public class TableData{
 			if (barCode.length() !=12){
 				JOptionPane.showMessageDialog(frame, "Barcode most be 12 digits.",
 						"Invalid UPC",JOptionPane.ERROR_MESSAGE);
-				
+				System.out.println("FAILED - invalid barcode input");
 				break addRow;
 				
 			}
-			if (product.length() >20){
-				JOptionPane.showMessageDialog(frame, "Product Name is Too Long.",
-						"Please input a Product Name 20 characters or less.",JOptionPane.ERROR_MESSAGE);
-				
+			
+			if (product.length() > 20){
+				JOptionPane.showMessageDialog(frame, "Product too long.",
+						"Not happening, bub.",JOptionPane.ERROR_MESSAGE);
 				break addRow;
 			}
 			
+			switch (unit){
+			case "each":
+			case "count":
+			case "milliliter":
+			case "liter":
+			case "litre":
+			case "ounce":
+			case "cup":
+			case "quart":
+			case "pint":
+			case "gallon":
+			case "peck":
+			case "bushel":
+			case "milligram":
+			case "gram":
+			case "killogram":
+			case "pound":
+			case "ton":
+			case "buttload":
+				break;
+			default:
+				JOptionPane.showMessageDialog(frame,
+						"Invalid unit measurement.  Try again.",
+						"Invalid Unit",JOptionPane.ERROR_MESSAGE);
+				break addRow;
+			}
 			PreparedStatement stmt =  con1.prepareStatement ("INSERT INTO supplies(ProductName," +
 					"ProductBarCode,ProductSize,ProductUnit," +
 					"ProductQuantity,AmountOnHand,AmountSold)" +
@@ -143,7 +171,7 @@ public class TableData{
 			//Error message
 			JOptionPane.showMessageDialog(frame, 
 					"Complete form to add an entry.",
-					"Error",JOptionPane.ERROR_MESSAGE);
+					"Slow down there, Speed Racer",JOptionPane.ERROR_MESSAGE);
 					
 		}
 	}
@@ -153,7 +181,7 @@ public class TableData{
 	//editData reads changes made by the user 
 	//and alters the database
 	//*****************************************************
-	public void editData(String size, String measuredUnit2,
+	public void editData(String size, String unit,
 			String amount, String stock, int row){
 		
 		editRow: try{
@@ -162,33 +190,37 @@ public class TableData{
 				
 			getsize = Float.parseFloat(size);
 			model.setValueAt(getsize, row, 2);
-				
-			getunit = null;
-			if (measuredUnit2.equals("ounce")){
-				getunit = "ounce";
-				model.setValueAt(getunit, row, 3);
-			}
-			else if (measuredUnit2.equals("pound")){
-				getunit = "pound";
-				model.setValueAt(getunit, row, 3);
-			}
-			else if (measuredUnit2.equals("count")){
-				getunit = "count";
-				model.setValueAt(getunit, row, 3);
-			}
-			else if (measuredUnit2.equals("liter")){
-				getunit = "liter";
-				model.setValueAt(getunit, row, 3);
-			}
-			else {
-				JOptionPane.showMessageDialog(frame, "Units Does Not Exist",
-						"Must be ounce, pound, count, liter",JOptionPane.ERROR_MESSAGE);
-				break editRow;
-				
-			}
 			
+			getunit = unit.toLowerCase();
+			model.setValueAt(getunit, row, 3);
 			
-			
+			switch (getunit){
+				case "each":
+				case "count":
+				case "milliliter":
+				case "liter":
+				case "litre":
+				case "ounce":
+				case "cup":
+				case "quart":
+				case "pint":
+				case "gallon":
+				case "peck":
+				case "bushel":
+				case "milligram":
+				case "gram":
+				case "killogram":
+				case "pound":
+				case "ton":
+				case "buttload":
+					break;
+				default:
+					JOptionPane.showMessageDialog(frame,
+							"Invalid unit measurement.  Try again.",
+							"Invalid Unit",JOptionPane.ERROR_MESSAGE);
+					break editRow;
+			}
+
 			getamount = Integer.parseInt(amount);
 			model.setValueAt(getamount, row, 4);
 				
@@ -258,45 +290,52 @@ public class TableData{
 	public void sellStock(String barCodeSell, String quantity){
 		
 		try {
-				 
+			
 			upcsell = Long.parseLong(barCodeSell);
-				 
+			
 			PreparedStatement stmt1 = con1.prepareStatement("Set @row = 0; ");
 			stmt1.executeQuery();
-					
+			
 			PreparedStatement stmt2 = con1.prepareStatement("SELECT Row FROM (SELECT @row := " +
 					"@row + 1 AS Row, ProductBarCode AS ProductBarCode " + 
 					"FROM supplies Order by ProductName) " + 
 					"As indexing  WHERE ProductBarCode ='"+ upcsell +"'; ");
-			ResultSet rs = stmt2.executeQuery();
-					
+			ResultSet rs = stmt2.executeQuery("SELECT Row FROM (SELECT @row := " +
+					"@row + 1 AS Row, ProductBarCode AS ProductBarCode " + 
+					"FROM supplies Order by ProductName) " + 
+					"As indexing  WHERE ProductBarCode ='"+ upcsell +"'; ");
+			
 			rs.next();
 			int x = rs.getInt(1);
 			x -= 1;
-				 
+			
 			String mod1 = (String) model.getValueAt(x, 6);
+			
 			sold = Long.parseLong(mod1);
-					
+			
 			int quant = Integer.parseInt(quantity);
-					
+			
 			String mod2 = (String) model.getValueAt(x, 5);
 			cstock = Integer.parseInt(mod2);
-					
+			
 			if ((cstock - quant) >= 0){
 				cstock = cstock - quant;
 				sold = sold + quant;
 			}
-					
+				
 		    PreparedStatement stmt = con1.prepareStatement("UPDATE supplies SET AmountOnHand='" + 
 					cstock + "', AmountSold='" + sold + 
 					"' WHERE ProductBarCode='" + upcsell + "';");
 		    stmt.executeUpdate();
-		            
+		        
 		    model.setValueAt(cstock, x, 5);
 			model.setValueAt(sold, x, 6);
-				 
+			
 	    } catch (Exception e) {
 	        e.printStackTrace();
+	        JOptionPane.showMessageDialog(frame,
+					"An error has occured  :(",
+					"Oops you broke it...",JOptionPane.ERROR_MESSAGE);
 	      	
 		}
 		

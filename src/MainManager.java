@@ -113,7 +113,7 @@ public class MainManager {
 		lblNewLabel_2.setBounds(21, 40, 174, 44);
 		frame.getContentPane().add(lblNewLabel_2);
 		
-		JLabel lblNewLabel_3 = new JLabel(" Add an" + 
+		JLabel lblNewLabel_3 = new JLabel(" Add an " + 
 				"Order to Current Inventory");
 		lblNewLabel_3.setForeground(Color.GRAY);
 		lblNewLabel_3.setFont(new Font("Arial", Font.PLAIN, 13));
@@ -196,13 +196,11 @@ public class MainManager {
 		frame.getContentPane().add(amount);
 		amount.setColumns(10);
 		
-		
 		unit = new JTextField();
 		unit.setBounds(119, 192, 76, 21);
 		frame.getContentPane().add(unit);
 		unit.setColumns(10);
-
-		
+	
 		currentStock = new JTextField();
 		currentStock.setBounds(115, 383, 80, 21);
 		frame.getContentPane().add(currentStock);
@@ -232,6 +230,7 @@ public class MainManager {
 		//JTable Info
 		//*************************************************
 		
+		//Table specifications and into to populate
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setBounds(301, 85, 752, 449);
 		frame.getContentPane().add(scrollPane);
