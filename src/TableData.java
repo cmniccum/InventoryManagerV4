@@ -3,7 +3,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Vector;
-
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
@@ -11,7 +10,7 @@ import javax.swing.table.TableModel;
 
 public class TableData{
 	
-	//--------------------------------------------->>>>>    Connection to Database   <<<<<----------------------------------------------------------------------
+	//----------->>>>>    Connection to Database   <<<<<---
 	
 	//Connect to the database
 	ConnectSQL con = new ConnectSQL();
@@ -22,7 +21,7 @@ public class TableData{
 	//Variables
 	private long upc;
 	private long getcode;			
-	private int getsize;			
+	private float getsize;			
 	private String getunit; 		
 	private int getamount;			
 	private int getstock;			
@@ -30,9 +29,9 @@ public class TableData{
 	private int getcurrentstock;	
 	private int getaddedstock;		
 	private long upcsell;			
-	private long sold;				
+	private Long sold;				
 	private int cstock;				
-	private String table_click;		
+	private String table_click;
 		
 	private DefaultTableModel model =  new DefaultTableModel(getTableData(), getHeader());
 	
@@ -66,7 +65,7 @@ public class TableData{
 
 		ResultSet rs1 = stmt1.executeQuery();
 		
-		while(rs1.next()){
+		while (rs1.next()){
 			Vector<String> vec2 = new Vector<String>();
 
 			for (int i = 1; i < 8; i++){
@@ -85,7 +84,7 @@ public class TableData{
 	//addData adds the user's input to the database
 	//*****************************************************
 	public void addData(String product, String barCode,
-			String size, String combo, String amount){
+			String size, String unit, String amount){
 				
 		addRow : try {
 				
@@ -95,11 +94,16 @@ public class TableData{
 			if (barCode.length() !=12){
 				JOptionPane.showMessageDialog(frame, "Barcode most be 12 digits.",
 						"Invalid UPC",JOptionPane.ERROR_MESSAGE);
-				System.out.println("FAILED - invalid barcode input");
+				
 				break addRow;
 				
 			}
-			
+			if (product.length() >20){
+				JOptionPane.showMessageDialog(frame, "Product Name is Too Long.",
+						"Please input a Product Name 20 characters or less.",JOptionPane.ERROR_MESSAGE);
+				
+				break addRow;
+			}
 			
 			PreparedStatement stmt =  con1.prepareStatement ("INSERT INTO supplies(ProductName," +
 					"ProductBarCode,ProductSize,ProductUnit," +
@@ -109,7 +113,7 @@ public class TableData{
 			stmt.setString (1, product);
 			stmt.setString (2, barCode);
 			stmt.setString (3, size);
-			stmt.setString (4, combo);
+			stmt.setString (4, unit);
 			stmt.setString (5, amount);
 			stmt.setInt    (6, 0);				
 			stmt.setInt    (7, 0);
@@ -129,7 +133,7 @@ public class TableData{
 			int x = rs.getInt(1);
 			x -= 1;
 					 
-			String[] insertrow = {product,barCode,size,combo,amount,"0","0"};
+			String[] insertrow = {product,barCode,size,unit,amount,"0","0"};
 					
 			model.insertRow(x, insertrow);
 				
@@ -152,11 +156,11 @@ public class TableData{
 	public void editData(String size, String measuredUnit2,
 			String amount, String stock, int row){
 		
-		try{
+		editRow: try{
 			
 			getcode = Long.parseLong((String) model.getValueAt(row, 1));
 				
-			getsize = Integer.parseInt(size);
+			getsize = Float.parseFloat(size);
 			model.setValueAt(getsize, row, 2);
 				
 			getunit = null;
@@ -172,7 +176,19 @@ public class TableData{
 				getunit = "count";
 				model.setValueAt(getunit, row, 3);
 			}
+			else if (measuredUnit2.equals("liter")){
+				getunit = "liter";
+				model.setValueAt(getunit, row, 3);
+			}
+			else {
+				JOptionPane.showMessageDialog(frame, "Units Does Not Exist",
+						"Must be ounce, pound, count, liter",JOptionPane.ERROR_MESSAGE);
+				break editRow;
 				
+			}
+			
+			
+			
 			getamount = Integer.parseInt(amount);
 			model.setValueAt(getamount, row, 4);
 				
@@ -239,52 +255,51 @@ public class TableData{
 	//sellStock removes from the current stock of a product
 	//from user input
 	//*****************************************************
-	public DefaultTableModel sellStock(String barCodeSell, String quantity){
+	public void sellStock(String barCodeSell, String quantity){
 		
 		try {
 				 
 			upcsell = Long.parseLong(barCodeSell);
-			 
+				 
 			PreparedStatement stmt1 = con1.prepareStatement("Set @row = 0; ");
 			stmt1.executeQuery();
-			
+					
 			PreparedStatement stmt2 = con1.prepareStatement("SELECT Row FROM (SELECT @row := " +
 					"@row + 1 AS Row, ProductBarCode AS ProductBarCode " + 
 					"FROM supplies Order by ProductName) " + 
 					"As indexing  WHERE ProductBarCode ='"+ upcsell +"'; ");
-			 
 			ResultSet rs = stmt2.executeQuery();
-			
+					
 			rs.next();
 			int x = rs.getInt(1);
 			x -= 1;
-			 
+				 
 			String mod1 = (String) model.getValueAt(x, 6);
 			sold = Long.parseLong(mod1);
-			 	
+					
 			int quant = Integer.parseInt(quantity);
-			 
+					
 			String mod2 = (String) model.getValueAt(x, 5);
 			cstock = Integer.parseInt(mod2);
-			 
+					
 			if ((cstock - quant) >= 0){
 				cstock = cstock - quant;
 				sold = sold + quant;
 			}
-			
+					
 		    PreparedStatement stmt = con1.prepareStatement("UPDATE supplies SET AmountOnHand='" + 
 					cstock + "', AmountSold='" + sold + 
 					"' WHERE ProductBarCode='" + upcsell + "';");
 		    stmt.executeUpdate();
-		   
+		            
 		    model.setValueAt(cstock, x, 5);
 			model.setValueAt(sold, x, 6);
-			 
+				 
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	      	
 		}
-		return model;
+		
 	}
 	
 

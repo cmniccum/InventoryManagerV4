@@ -5,7 +5,6 @@ import javax.swing.JLabel;
 import java.awt.Font;
 import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.JComboBox;
 import java.awt.Color;
 import javax.swing.JButton;
 import javax.swing.JTable;
@@ -22,6 +21,7 @@ public class MainManager {
 	private JFrame frame;
 	public JTextField product;
 	public JTextField barCode;
+	public JTextField unit;
 	public JTextField size;
 	public JTextField amount;
 	public JTextField currentStock;
@@ -32,7 +32,7 @@ public class MainManager {
 	public JTextField stock;
 	public JTextField measuredUnit2;
 	public DefaultTableModel model;
-	public String combo;
+	public int combo;
 	TableData data = new TableData();
 	
 	/**
@@ -196,21 +196,17 @@ public class MainManager {
 		frame.getContentPane().add(amount);
 		amount.setColumns(10);
 		
-		String [] units = { "ounce", "pound", "count"};
-		JComboBox measuredUnit = new JComboBox(units);
-		measuredUnit.setBounds(119, 192, 76, 21);
-		frame.getContentPane().add(measuredUnit);
-		combo = (String) measuredUnit.getSelectedItem();
+		
+		unit = new JTextField();
+		unit.setBounds(119, 192, 76, 21);
+		frame.getContentPane().add(unit);
+		unit.setColumns(10);
+
 		
 		currentStock = new JTextField();
 		currentStock.setBounds(115, 383, 80, 21);
 		frame.getContentPane().add(currentStock);
 		currentStock.setColumns(10);
-		
-		measuredUnit2 = new JTextField();
-		measuredUnit2.setBounds(215, 192, 76, 20);
-		frame.getContentPane().add(measuredUnit2);
-		measuredUnit2.setColumns(10);
 		
 		quantity = new JTextField();
 		quantity.setBounds(102, 491, 93, 21);
@@ -236,18 +232,6 @@ public class MainManager {
 		//JTable Info
 		//*************************************************
 		
-		//--------------->>>>>   Creates the Table Header     <<<<<--------------
-		/*Vector<String> header = new Vector<String>();
-		header.add("Product"); 
-		header.add("BarCode");
-		header.add("Size"); 
-		header.add("Unit");
-		header.add("Quantity");
-		header.add("Current Stock"); 
-		header.add("Total Sold"); 
-		*/
-		
-		//Table specifications and into to populate
 		JScrollPane scrollPane = new JScrollPane();
 		scrollPane.setBounds(301, 85, 752, 449);
 		frame.getContentPane().add(scrollPane);
@@ -261,7 +245,7 @@ public class MainManager {
 				try {
 					data.loadTable(table.getModel(),
 							table.getSelectedRow(),product, barCode,
-							size, measuredUnit2, amount, currentStock, stock);
+							size, unit, amount, currentStock, stock);
 					model = (DefaultTableModel) data.getTableModel();
 				} catch (Exception e) {
 					
@@ -280,7 +264,7 @@ public class MainManager {
 			public void actionPerformed(ActionEvent arg0) {
 
 				data.clearTextFields(product, barCode,
-						size, measuredUnit2, amount, stock,
+						size, unit, amount, stock,
 						currentStock, addedStock, quantity,
 						barCodeSell);
 				model = (DefaultTableModel) data.getTableModel();
@@ -296,7 +280,7 @@ public class MainManager {
 		JButton addEntry = new JButton("ADD ENTRY");
 		addEntry.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
-				data.addData(product.getText(),barCode.getText(),size.getText(),combo,amount.getText());
+				data.addData(product.getText(),barCode.getText(),size.getText(),unit.getText(),amount.getText());
 				model = (DefaultTableModel) data.getTableModel();
 			}
 		});
@@ -310,7 +294,7 @@ public class MainManager {
 		edit.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				data.editData(size.getText(),
-						measuredUnit2.getText(),amount.getText(),
+						unit.getText(),amount.getText(),
 						stock.getText(), table.getSelectedRow());	
 				model = (DefaultTableModel) data.getTableModel();
 			}
